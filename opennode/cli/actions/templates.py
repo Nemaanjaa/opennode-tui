@@ -125,14 +125,13 @@ def rename_template(storage_pool, vm_type, template,new_template):
         return
     else:
         os.rename(templatefile,new_templatefile)
-        os.rename (os.path.join(templatefile+'.pfff'),os.path.join(new_templatefile+'.pfff'))
+        if os.path.isfile(os.path.join(templatefile+'.pfff')):
+            os.rename (os.path.join(templatefile+'.pfff'),os.path.join(new_templatefile+'.pfff'))
         ovfpath = "%s/%s/%s/unpacked/" % (storage_endpoint, storage_pool,vm)
         os.rename (os.path.join(ovfpath,template+".ovf"),os.path.join(ovfpath,new_template+".ovf"))
-        try:
+        if os.path.isfile(os.path.join(ovfpath,template+".tar.gz")):
             os.rename (os.path.join(ovfpath,template+".scripts.tar.gz"),os.path.join(ovfpath,new_template+".scripts.tar.gz"))
-        except:
-            print ''
-        if vm == 'openvz':
+        if os.path.isfile(os.path.join(ovfpath,template+".tar.gz")):
             os.rename (os.path.join(ovfpath,template+".tar.gz"),os.path.join(ovfpath,new_template+".tar.gz"))
  
 def delete_template(storage_pool, vm_type, template):
