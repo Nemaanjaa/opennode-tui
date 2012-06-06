@@ -229,9 +229,9 @@ class OpenNodeTUI(object):
         new_name_entry = Entry(30, 'template_name')
         chosen_repo=chosen_repo
         storage_pool=storage_pool
-        msg='Rename template ' + str(selected_tmp)
+        msg='Please, enter a new name for ' + str(selected_tmp)
         command, new_name = EntryWindow(self.screen, TITLE, msg,
-                                [('New Template name', new_name_entry)],buttons=[('Rename', 'rename'),('Cancel', 'cancel')])
+                                [('New name', new_name_entry)],buttons=[('Rename', 'rename'),('Cancel', 'cancel')])
         if command == 'cancel':
             #returns user to Choose template screen
             return self.display_select_local_template_from_storage(chosen_repo,storage_pool)
@@ -273,7 +273,7 @@ class OpenNodeTUI(object):
                                     'Select a template action to perform',
                                     [('Manage template cache', 'manage'),
                                      ('Create a new template from VM', 'create'),
-                                     ('Rename an existing template', 'rename'),
+                                     ('Rename ', 'rename'),
                                      ('Back', 'back')])
         logic[result]()
 
