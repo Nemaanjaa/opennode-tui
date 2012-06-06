@@ -8,7 +8,7 @@ from ovf.OvfFile import OvfFile
 from snack import SnackScreen, ButtonChoiceWindow, Entry, EntryWindow
 
 from opennode.cli.helpers import (display_create_template, display_checkbox_selection,
-                                  display_selection, display_vm_type_select, display_info)
+                                  display_selection, display_selection_rename, display_vm_type_select, display_info)
 from opennode.cli import actions
 from opennode.cli import config
 from opennode.cli.forms import (KvmForm, OpenvzForm, OpenvzTemplateForm, KvmTemplateForm,
@@ -225,7 +225,21 @@ class OpenNodeTUI(object):
             else:
                 # XXX: error handling?
                 return self.display_oms_register("Error: Cannot resolve OMS address/port")
-
+    def display_template_newname(self,chosen_repo,storage_pool,selected_tmp):
+        new_name_entry = Entry(30, 'template_name')
+        chosen_repo=chosen_repo
+        storage_pool=storage_pool
+        msg='Rename template ' + str(selected_tmp)
+        command, new_name = EntryWindow(self.screen, TITLE, msg,
+                                [('New Template name', new_name_entry)],buttons=[('Rename', 'rename'),('Cancel', 'cancel')])
+        if command == 'cancel':
+            #returns user to Choose template screen
+            return self.display_select_local_template_from_storage(chosen_repo,storage_pool)
+        else:
+            #new name for template
+            name = new_name_entry.value().strip() 
+            actions.templates.rename_template(storage_pool, chosen_repo, selected_tmp,name)
+            return self.display_select_local_template_from_storage(chosen_repo,storage_pool)
     def display_oms_download(self):
         result = ButtonChoiceWindow(self.screen, TITLE,
                                     'Would you like to download OMS template?',
@@ -253,11 +267,13 @@ class OpenNodeTUI(object):
         logic = {'back': self.display_manage,
                  'manage': self.display_template_manage,
                  'create': self.display_template_create,
+                 'rename': self.display_template_rename,
                 }
         result = ButtonChoiceWindow(self.screen, TITLE,
                                     'Select a template action to perform',
                                     [('Manage template cache', 'manage'),
                                      ('Create a new template from VM', 'create'),
+                                     ('Rename an existing template', 'rename'),
                                      ('Back', 'back')])
         logic[result]()
 
@@ -296,6 +312,30 @@ class OpenNodeTUI(object):
                     actions.templates.sync_storage_pool(storage_pool, chosen_repo, selected_list, force=True)
             self.screen = SnackScreen()
         self.display_templates()
+        
+        
+    def display_template_rename(self):
+        if actions.templates.is_syncing():
+            self.screen.finish()
+            actions.utils.attach_screen('OPENNODE-SYNC')
+            self.screen = SnackScreen()
+        else:
+            storage_pool = actions.storage.get_default_pool()
+            if storage_pool is None:
+                return display_info(self.screen, "Error", "Default storage pool is not defined!")
+            repos = actions.templates.get_template_repos()
+            if repos is None:
+                return self.display_templates()
+            chosen_repo = display_selection(self.screen, TITLE, repos, 'Please, select template repository from the list')
+            if chosen_repo is None:
+                return self.display_templates()
+            selected_tmp = self.display_select_local_template_from_storage(chosen_repo,storage_pool)
+            if selected_tmp is None:
+                return self.display_templates()
+            name = self.display_template_newname(chosen_repo,storage_pool,selected_tmp)
+            self.screen.finish()
+            self.screen = SnackScreen()
+        self.display_templates()
 
     def display_select_template_from_repo(self, repo, storage_pool):
         remote_templates = actions.templates.get_template_list(repo)
@@ -306,6 +346,11 @@ class OpenNodeTUI(object):
         list_items.extend([('(l)' + tmpl, tmpl, True) for tmpl in purely_local_templates])
         return display_checkbox_selection(self.screen, TITLE, list_items,
                         'Please, select templates to keep in the storage pool (r - remote, l - local):')
+    def display_select_local_template_from_storage(self, repo, storage_pool):
+        local_templates = actions.templates.get_local_templates(config.c(repo, 'type'),
+                                                                storage_pool)
+        return display_selection_rename (self.screen, TITLE, local_templates,
+                        "Please, select which local template do you want to rename:")
 
     def display_select_template_from_storage(self, storage_pool, vm_type):
         """Displays a list of templates from a specified storage pool"""
