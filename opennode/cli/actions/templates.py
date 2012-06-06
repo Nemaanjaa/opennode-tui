@@ -111,6 +111,27 @@ def import_template(template, vm_type, storage_pool = c('general', 'default-stor
     unpack_template(storage_pool, vm_type, tmpl_name)
 
 
+def rename_template(storage_pool, vm_type, template,new_template):
+    """Rename the choosen template"""
+    storage_endpoint = c('general', 'storage-endpoint')
+    if (vm_type=='default-openvz-repo'):
+        vm='openvz'
+    if (vm_type=='default-kvm-repo'):
+        vm='kvm'
+    templatefile = "%s/%s/%s/%s.tar" % (storage_endpoint, storage_pool,vm,
+                                        template)
+    new_templatefile = "%s/%s/%s/%s.tar" % (storage_endpoint, storage_pool,vm,new_template)
+    if os.path.isfile(new_templatefile):
+        return
+    else:
+        os.rename(templatefile,new_templatefile)
+        os.rename (os.path.join(templatefile+'.pfff'),os.path.join(new_templatefile+'.pfff'))
+        ovfpath = "%s/%s/%s/unpacked/" % (storage_endpoint, storage_pool,vm)
+        os.rename (os.path.join(ovfpath,template+".ovf"),os.path.join(ovfpath,new_template+".ovf"))
+        os.rename (os.path.join(ovfpath,template+".scripts.tar.gz"),os.path.join(ovfpath,new_template+".scripts.tar.gz"))
+        if vm == 'openvz':
+            os.rename (os.path.join(ovfpath,template+".tar.gz"),os.path.join(ovfpath,new_template+".tar.gz"))
+ 
 def delete_template(storage_pool, vm_type, template):
     """Deletes template, unpacked folder and a hash"""
     # get a list of files in the template

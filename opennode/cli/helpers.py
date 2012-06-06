@@ -95,6 +95,7 @@ def display_create_template(screen, title, vm_type, templates, help=None):
     # remove whitespaces from the template name
     tmpl_name = re.sub(r'\s', '', tmpl_name)
     return (bb.buttonPressed(form_result), str(base_tmpl.current()), tmpl_name)
+    
 
 
 def display_selection(screen, title, list_of_items, subtitle, default = None,
@@ -113,6 +114,26 @@ def display_selection(screen, title, list_of_items, subtitle, default = None,
         action, selection = ListboxChoiceWindow(screen, title, subtitle, list_of_items, 
                             buttons, scroll = scroll, height = height, default = default)
         if buttons == ['Ok', 'Back']:
+            if action != 'back':
+                return selection
+        else:
+            return (action, selection) # customized buttons
+    else:
+        ButtonChoiceWindow(screen, title, 'Sorry, there are no items to choose from.', ['Back'])
+    return None
+    
+def display_selection_rename(screen, title, list_of_items, subtitle, default = None,
+                      buttons = ['Rename', 'Back']):
+    """Display a list of items, return selected one or None, if nothing was selected"""
+    if len(list_of_items) > 0:
+        if not isinstance(list_of_items[0], types.TupleType):
+            # if we have a list of strings, we'd prefer to get these strings as the selection result
+            list_of_items = zip(list_of_items, list_of_items)
+        height = 10
+        scroll = 1 if len(list_of_items) > height else 0
+        action, selection = ListboxChoiceWindow(screen, title, subtitle, list_of_items, 
+                            buttons, scroll = scroll, height = height, default = default)
+        if buttons == ['Rename', 'Back']:
             if action != 'back':
                 return selection
         else:
