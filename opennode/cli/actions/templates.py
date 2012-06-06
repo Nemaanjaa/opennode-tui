@@ -128,7 +128,10 @@ def rename_template(storage_pool, vm_type, template,new_template):
         os.rename (os.path.join(templatefile+'.pfff'),os.path.join(new_templatefile+'.pfff'))
         ovfpath = "%s/%s/%s/unpacked/" % (storage_endpoint, storage_pool,vm)
         os.rename (os.path.join(ovfpath,template+".ovf"),os.path.join(ovfpath,new_template+".ovf"))
-        os.rename (os.path.join(ovfpath,template+".scripts.tar.gz"),os.path.join(ovfpath,new_template+".scripts.tar.gz"))
+        try:
+            os.rename (os.path.join(ovfpath,template+".scripts.tar.gz"),os.path.join(ovfpath,new_template+".scripts.tar.gz"))
+        except:
+            
         if vm == 'openvz':
             os.rename (os.path.join(ovfpath,template+".tar.gz"),os.path.join(ovfpath,new_template+".tar.gz"))
  
