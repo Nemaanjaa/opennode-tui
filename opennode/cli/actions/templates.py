@@ -131,7 +131,7 @@ def rename_template(storage_pool, vm_type, template,new_template):
         try:
             os.rename (os.path.join(ovfpath,template+".scripts.tar.gz"),os.path.join(ovfpath,new_template+".scripts.tar.gz"))
         except:
-            
+            print ''
         if vm == 'openvz':
             os.rename (os.path.join(ovfpath,template+".tar.gz"),os.path.join(ovfpath,new_template+".tar.gz"))
  
